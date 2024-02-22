@@ -48,5 +48,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NFCReaderUsageDescription</key>
+	<string>We need access to NFC for reading tags</string>
+	<key>com.apple.developer.nfc.readersession.formats</key>
+	<array>
+			<string>NDEF</string>
+	</array>
 </dict>
 </plist>

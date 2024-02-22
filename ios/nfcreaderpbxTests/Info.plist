@@ -20,5 +20,11 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>We need access to NFC for reading tags</string>
+	<key>com.apple.developer.nfc.readersession.formats</key>
+	<array>
+			<string>NDEF</string>
+	</array>
 </dict>
 </plist>

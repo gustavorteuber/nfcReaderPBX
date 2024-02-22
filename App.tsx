@@ -1,118 +1,59 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+/* eslint-disable react-native/no-inline-styles */
+import React, {useEffect} from 'react';
+import {Button, Platform, View, Alert} from 'react-native';
+import NfcManager, {NfcTech} from 'react-native-nfc-manager';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const NFCReader = () => {
+  useEffect(() => {
+    hasSupportNFC();
+  });
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  const hasSupportNFC = async () => {
+    try {
+      await NfcManager.start();
+      const isSupported = await NfcManager.isSupported();
+      if (!isSupported) {
+        console.log('NFC is not supported');
+        return;
+      }
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+      const isEnabled = await NfcManager.isEnabled();
+      if (!isEnabled) {
+        console.log('NFC is not enabled');
+        return;
+      }
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+      if (Platform.OS === 'ios') {
+        NfcManager.setAlertMessageIOS('Approach NFC tag');
+      }
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+      await readNdef();
+    } catch (ex) {
+      console.log('Error initializing NFC', ex);
+    }
+  };
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const readNdef = async () => {
+    try {
+      const tag = await NfcManager.requestTechnology([NfcTech.Ndef]);
+      if (tag) {
+        const stats = await NfcManager.ndefHandler.getNdefStatus();
+        console.log('NDEF status:', stats);
+      }
+      console.log('Tag detected:', tag);
+      Alert.alert('NFC Tag Detected', `Tag: ${tag}`);
+    } catch (ex) {
+      console.warn('Error reading NFC tag', ex);
+    } finally {
+      NfcManager.cancelTechnologyRequest();
+    }
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <Button onPress={() => hasSupportNFC()} title="Start NFC Reader" />
+    </View>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
+export default NFCReader;
